@@ -47,6 +47,7 @@ def handlePublish(publishSocket,topic,value):
 def main():
   serv_sock_addr = ('127.0.0.1', SERV_PORT)
   welcome_sock = socket(AF_INET, SOCK_STREAM) #use TCP
+  welcome_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
   welcome_sock.bind(serv_sock_addr) 
   welcome_sock.listen(5)
   print ('TCP threaded server started ...')
