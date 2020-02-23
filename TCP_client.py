@@ -7,6 +7,7 @@ SERV_PORT = 50000
 serv_sock_addr = ('127.0.0.1', SERV_PORT)
 cli_sock = socket(AF_INET, SOCK_STREAM)
 cli_sock.connect(serv_sock_addr)
+cli_sock.setblocking(False)
 
 username = input('Enter your name: ')
 while True:

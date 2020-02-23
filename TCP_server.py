@@ -1,36 +1,51 @@
 from socket import * 
 from threading import Thread
+from collections import defaultdict
 import os,sys
 
+dictSubscribe = defaultdict(list)
 SERV_PORT = 50000
 
-def handleClient(s,ip,port):
+def handleClient(clientSocket,ip,port):
   while True:
-     txtin = s.recv(1024)
+     txtin = clientSocket.recv(1024)
      decodeTxt = txtin.decode('utf-8')
-     print ('Client> %s' %(txtin).decode('utf-8')) 
-     print ('\n %s , %s' %(ip,port))
+     print (f'Client> {decodeTxt}') 
      command = decodeTxt.split()
-     print('post: %s' %(command))
      if txtin == b'quit':
-        print('Client disconnected ...')
+        print(f'Client {ip}:{port} disconnected ...')
         break
-     elif command[0] == 'subscribe':
-        #Thread(target=, args=(s,ip,port)).start()
-        print('sd')
+     elif command[0] == 'subscribe' and len(command) >= 3:
+        handleSubscribe(clientSocket,command[2])
+     elif command[0] == 'publish' and len(command) >= 3:
+        handlePublish(clientSocket,command[2],command[3]) 
      else:
-        txtout = txtin.upper()    
-        s.send(txtout)
-  s.close()
+        msg = "Don't have command"
+        clientSocket.send(bytes(msg,"utf-8"))
+  clientSocket.close()
   return
 
-#  def handleSubscribe(s,ip,port):
-#      while True:
-#          command = inputCommand.recv(1024)
+def handleSubscribe(subscribeSocket,topic):
+  dictSubscribe[topic].append(subscribeSocket)
+  msg = "You subscribe topic: " + topic
+  subscribeSocket.send(bytes(msg,"utf-8"))
 
+def handlePublish(publishSocket,topic,value):
+  if dictSubscribe[topic]:
+    count = 0
+    continuePublish = True
+    while continuePublish:
+      dictSubscribe[topic][count].send(bytes(value,"utf-8"))
+      if count < len(dictSubscribe[topic])-1:
+        count += 1
+      else:
+        continuePublish = False
+  else:
+    msg = "Don't have subscriber"
+    publishSocket.send(bytes(msg,'utf-8'))
 
 def main():
-  serv_sock_addr = ('10.35.250.190', SERV_PORT)
+  serv_sock_addr = ('127.0.0.1', SERV_PORT)
   welcome_sock = socket(AF_INET, SOCK_STREAM) #use TCP
   welcome_sock.bind(serv_sock_addr) 
   welcome_sock.listen(5)
@@ -48,7 +63,7 @@ def main():
       import traceback
       trackback.print_exc()
 
-  s.close()
+  conn_sock.close()
 
 # Handle Ctrl-C Interrupt
 if __name__ == '__main__':
