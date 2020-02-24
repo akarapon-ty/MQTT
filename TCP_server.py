@@ -4,29 +4,34 @@ from collections import defaultdict
 import os,sys
 
 dictSubscribe = defaultdict(list)
+delClientConect = defaultdict(list)
 SERV_PORT = 50000
 
 def handleClient(clientSocket,ip,port):
   while True:
-     txtin = clientSocket.recv(1024)
-     decodeTxt = txtin.decode('utf-8')
-     print (f'Client> {decodeTxt}') 
-     command = decodeTxt.split()
-     if txtin == b'quit':
-        print(f'Client {ip}:{port} disconnected ...')
-        break
-     elif command[0] == 'subscribe' and len(command) >= 3:
-        handleSubscribe(clientSocket,command[2])
-     elif command[0] == 'publish' and len(command) >= 3:
-        handlePublish(clientSocket,command[2],command[3]) 
-     else:
-        msg = "Don't have command"
-        clientSocket.send(bytes(msg,"utf-8"))
-  clientSocket.close()
-  return
+      txtin = clientSocket.recv(1024)
+      # if not len(txtin):
+      #    delDict(clientSocket)
+      #    break
+      decodeTxt = txtin.decode('utf-8')
+      print (f'Client> {decodeTxt}') 
+      command = decodeTxt.split()
+      if txtin == b'quit':
+          print(f'Client {ip}:{port} disconnected ...')
+          break
+      elif command[0] == 'subscribe' and len(command) >= 3:
+          handleSubscribe(clientSocket,command[2])
+      elif command[0] == 'publish' and len(command) >= 3:
+          handlePublish(clientSocket,command[2],command[3]) 
+      else:
+          msg = "Don't have command"
+          clientSocket.send(bytes(msg,"utf-8"))
 
 def handleSubscribe(subscribeSocket,topic):
   dictSubscribe[topic].append(subscribeSocket)
+  position = len(dictSubscribe[topic])-1
+  delClientConect[socket].append(position)
+  delClientConect[socket].append(topic)
   msg = "You subscribe topic: " + topic
   subscribeSocket.send(bytes(msg,"utf-8"))
 
@@ -43,6 +48,13 @@ def handlePublish(publishSocket,topic,value):
   else:
     msg = "Don't have subscriber"
     publishSocket.send(bytes(msg,'utf-8'))
+  
+def delDict(socket):
+  position = dictSubscribe[socket][0]
+  topic = dictSubscribe[socket][1]
+  del dictSubscribe[topic][position]
+  del delClientConect[socket]
+  socket.shutdown(SHUT_RDWR)
 
 def main():
   serv_sock_addr = ('127.0.0.1', SERV_PORT)
