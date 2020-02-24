@@ -20,6 +20,7 @@ while True:
       break
     try:
       while True:
+        print('loop')
         modifiedMsg = cli_sock.recv(2048)
         print (modifiedMsg.decode('utf-8'))
     except IOError as e:
