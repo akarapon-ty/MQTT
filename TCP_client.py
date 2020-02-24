@@ -2,6 +2,7 @@ from socket import *
 import select
 import errno
 
+#test
 MAX_BUF = 2048
 SERV_PORT = 50000
 
