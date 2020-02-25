@@ -15,7 +15,7 @@ def main():
         if message:
             messageCut = message.split()
             if len(messageCut) >= 3:
-                socket = connection(message,messageCut[1])
+                socket = connection(messageCut[1])
                 messageCut[0] = messageCut[0].lower()
                 if socket:
                     if messageCut[0] == 'subscribe': 
@@ -34,13 +34,13 @@ def main():
                 print("\nDon't have command\n")
         continue
 
-def connection(message,ip):
+def connection(ip):
     serv_sock_addr = (ip, SERV_PORT)
     cli_sock = socket(AF_INET, SOCK_STREAM)
     try:
         cli_sock.connect(serv_sock_addr)
         return cli_sock
-    except:
+    except: 
         print(f"connection error ip: {ip}")
         return False
 
