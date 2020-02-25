@@ -18,6 +18,7 @@ def handleClient(clientSocket,ip,port):
         break
       print (f'Client> {decodeTxt}') 
       command = decodeTxt.split()
+      command[0] = command[0].lower()
       if txtin == b'quit':
           print(f'Client {ip}:{port} disconnected ...')
           break
@@ -51,14 +52,14 @@ def handlePublish(publishSocket,topic,value):
           count += 1
         else:
           continuePublish = False
-          msg = 'publish topic: {topic} finished'
-          publishSocket.send(bytes(msg,"utf-8"))
       except:
         if count < len(dictSubscribe[topic])-1:
           count += 1
           continue
         else:
           continuePublish = False
+    msg = 'publish topic: {topic} finished'
+    publishSocket.send(bytes(msg,"utf-8"))
   else:
     msg = "Don't have subscriber"
     publishSocket.send(bytes(msg,'utf-8'))
@@ -66,7 +67,7 @@ def handlePublish(publishSocket,topic,value):
 
 
 def main():
-  serv_sock_addr = ('127.0.0.1', SERV_PORT)
+  serv_sock_addr = ('127.0.0.1', SERV_PORT) #ประกาศเซิพไอพีอะไร
   welcome_sock = socket(AF_INET, SOCK_STREAM) #use TCP
   welcome_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
   welcome_sock.bind(serv_sock_addr) 

@@ -16,31 +16,33 @@ def main():
             messageCut = message.split()
             if len(messageCut) >= 3:
                 socket = connection(message,messageCut[1])
-                if messageCut[0] == 'subscribe':
-                    if socket:
+                messageCut[0] = messageCut[0].lower()
+                if socket:
+                    if messageCut[0] == 'subscribe': 
                         try:
                             subscribeMessage(message,socket)
                         except KeyboardInterrupt: 
                             print("\n Interrupted key")
-                elif messageCut[0] == 'publish':
-                    if socket:
+                    elif messageCut[0] == 'publish':
                         publishMessage(message,socket)
+                    else:
+                        print("\nDon't have command\n")
+            elif messageCut[0] == 'quit' and len(messageCut) == 1:
+                print('exit program')
+                break
             else:
-                print("Don't have command")
+                print("\nDon't have command\n")
         continue
 
 def connection(message,ip):
-    try: 
-        socket.close()
+    serv_sock_addr = (ip, SERV_PORT)
+    cli_sock = socket(AF_INET, SOCK_STREAM)
+    try:
+        cli_sock.connect(serv_sock_addr)
+        return cli_sock
     except:
-        serv_sock_addr = (ip, SERV_PORT)
-        cli_sock = socket(AF_INET, SOCK_STREAM)
-        try:
-            cli_sock.connect(serv_sock_addr)
-            return cli_sock
-        except:
-            print(f"connection error ip: {ip}")
-            return False
+        print(f"connection error ip: {ip}")
+        return False
 
 def subscribeMessage(message,socket):
     socket.send(bytes(message,"utf-8"))
