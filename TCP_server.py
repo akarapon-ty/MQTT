@@ -2,27 +2,36 @@ from socket import *
 from threading import Thread
 from collections import defaultdict
 import os,sys
+import time
 
 dictSubscribe = defaultdict(list)
 SERV_PORT = 50000
 
 def handleClient(clientSocket,ip,port):
   while True:
-     txtin = clientSocket.recv(1024)
-     decodeTxt = txtin.decode('utf-8')
-     print (f'Client> {decodeTxt}') 
-     command = decodeTxt.split()
-     if txtin == b'quit':
-        print(f'Client {ip}:{port} disconnected ...')
+    try:
+      txtin = clientSocket.recv(1024)
+      decodeTxt = txtin.decode('utf-8')
+      if decodeTxt == '':
+        clientSocket.close()
+        print(f"\nclose connection ip: {ip}:{port}\n")
         break
-     elif command[0] == 'subscribe' and len(command) >= 3:
-        handleSubscribe(clientSocket,command[2])
-     elif command[0] == 'publish' and len(command) >= 3:
-        handlePublish(clientSocket,command[2],command[3]) 
-     else:
+      print (f'Client> {decodeTxt}') 
+      command = decodeTxt.split()
+      if txtin == b'quit':
+          print(f'Client {ip}:{port} disconnected ...')
+          break
+      elif command[0] == 'subscribe' and len(command) >= 3:
+          handleSubscribe(clientSocket,command[2])
+      elif command[0] == 'publish' and len(command) >= 4:
+          handlePublish(clientSocket,command[2],decodeTxt) 
+      else:
         msg = "Don't have command"
         clientSocket.send(bytes(msg,"utf-8"))
-  clientSocket.close()
+    except:
+      clientSocket.close()
+      print(f"\nclient close connection ip: {ip}:{port}\n")
+      break
   return
 
 def handleSubscribe(subscribeSocket,topic):
@@ -34,15 +43,27 @@ def handlePublish(publishSocket,topic,value):
   if dictSubscribe[topic]:
     count = 0
     continuePublish = True
+    message = value.split(topic)
     while continuePublish:
-      dictSubscribe[topic][count].send(bytes(value,"utf-8"))
-      if count < len(dictSubscribe[topic])-1:
-        count += 1
-      else:
-        continuePublish = False
+      try:
+        dictSubscribe[topic][count].send(bytes(message[1],"utf-8"))
+        if count < len(dictSubscribe[topic])-1:
+          count += 1
+        else:
+          continuePublish = False
+          msg = 'publish topic: {topic} finished'
+          publishSocket.send(bytes(msg,"utf-8"))
+      except:
+        if count < len(dictSubscribe[topic])-1:
+          count += 1
+          continue
+        else:
+          continuePublish = False
   else:
     msg = "Don't have subscriber"
     publishSocket.send(bytes(msg,'utf-8'))
+
+
 
 def main():
   serv_sock_addr = ('127.0.0.1', SERV_PORT)

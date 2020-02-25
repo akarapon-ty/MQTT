@@ -1,39 +1,77 @@
 from socket import * 
 import select
-import errno
-import time
+import errno,sys,os
+from signal import signal, SIGINT
 
-#test
 MAX_BUF = 2048
 SERV_PORT = 50000
 
-serv_sock_addr = ('127.0.0.1', SERV_PORT)
-cli_sock = socket(AF_INET, SOCK_STREAM)
-cli_sock.connect(serv_sock_addr)
-cli_sock.setblocking(False)
+username = ''
 
-username = input('Enter your name: ')
-while True:
-    txtout = input(f'{username}: ')
-    if txtout:
-      message = txtout.encode('utf-8')
-      cli_sock.send(message)
-    if txtout == 'quit':
-      break
-    try:
-      while True:
-        time.sleep(0.2)
-        modifiedMsg = cli_sock.recv(2048)
-        print (modifiedMsg.decode('utf-8'))
-    except IOError as e:
-        if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
-            print('Reading error: {}'.format(str(e)))
-            sys.exit()
+def main():
+    username = input('Enter your name: ')
+    while True:
+        message = input(f'{username} > ')
+        if message:
+            messageCut = message.split()
+            if len(messageCut) >= 3:
+                socket = connection(message,messageCut[1])
+                if messageCut[0] == 'subscribe':
+                    if socket:
+                        try:
+                            subscribeMessage(message,socket)
+                        except KeyboardInterrupt: 
+                            print("\n Interrupted key")
+                elif messageCut[0] == 'publish':
+                    if socket:
+                        publishMessage(message,socket)
+            else:
+                print("Don't have command")
         continue
-    except Exception as e:
-        print('Reading error: '.format(str(e)))
-        sys.exit()
-      
+
+def connection(message,ip):
+    try: 
+        socket.close()
+    except:
+        serv_sock_addr = (ip, SERV_PORT)
+        cli_sock = socket(AF_INET, SOCK_STREAM)
+        try:
+            cli_sock.connect(serv_sock_addr)
+            return cli_sock
+        except:
+            print(f"connection error ip: {ip}")
+            return False
+
+def subscribeMessage(message,socket):
+    socket.send(bytes(message,"utf-8"))
+    while True:
+        try:
+            msgServer = socket.recv(2048)
+            print(msgServer.decode('utf-8'))
+        except KeyboardInterrupt:
+            print('Interrupt!!!')
+        except:
+            print('server close connection')
+            socket.close()
+            break
 
 
-cli_sock.close()
+def publishMessage(message,socket):
+    try:
+        socket.send(bytes(message,"utf-8"))
+        msgServer = socket.recv(2048)
+        print(msgServer.decode('utf-8'))
+    except:
+        print('server close connection')
+        socket.close()
+
+# Handle Ctrl-C Interrupt
+if __name__ == '__main__':
+   try:
+     main()
+   except KeyboardInterrupt:
+     print ('\nInterrupted ..')
+     try:
+       sys.exit(0)
+     except SystemExit:
+       os._exit(0)
