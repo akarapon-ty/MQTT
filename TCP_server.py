@@ -58,7 +58,7 @@ def handlePublish(publishSocket,topic,value):
           continue
         else:
           continuePublish = False
-    msg = 'publish topic: {topic} finished'
+    msg = f'publish topic: {topic} finished'
     publishSocket.send(bytes(msg,"utf-8"))
   else:
     msg = "Don't have subscriber"

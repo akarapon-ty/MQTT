@@ -16,7 +16,7 @@ def main():
             if message:
                 messageCut = message.split()
                 if len(messageCut) >= 3:
-                    socket = connection(message,messageCut[1])
+                    socket = connection(messageCut[1])
                     messageCut[0] = messageCut[0].lower()
                     if socket:
                         if messageCut[0] == 'subscribe': 
